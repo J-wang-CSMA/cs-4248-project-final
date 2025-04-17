@@ -85,13 +85,12 @@ class EnhancedBertGCNModel(nn.Module):
                                device=aligned_bert_embeddings.device if aligned_bert_embeddings is not None else 'cpu')
 
         num_nodes = aligned_bert_embeddings.shape[0]
-        # Simplified graph size adjustment (assumes aligned_bert_embeddings is correct)
         if dependency_graph.shape[0] != num_nodes:
             dependency_graph = dependency_graph[:num_nodes, :num_nodes]
         if affective_graph.shape[0] != num_nodes:
             affective_graph = affective_graph[:num_nodes, :num_nodes]
 
-        node_features_initial = aligned_bert_embeddings.to(dependency_graph.device)  # Move to graph device
+        node_features_initial = aligned_bert_embeddings.to(dependency_graph.device)
         dep_adj = dependency_graph
         aff_adj = affective_graph
         handcrafted_features_tensor = handcrafted_features.to(node_features_initial.device)
@@ -104,8 +103,8 @@ class EnhancedBertGCNModel(nn.Module):
                 input_feat = node_features_initial
                 adj_matrix = dep_adj
             else:
-                if gcn_output is None:  # Handle potential first odd layer issue if layers=1
-                    gcn_output = node_features_initial  # Fallback if needed? Or error.
+                if gcn_output is None:
+                    gcn_output = node_features_initial
                 input_feat = gcn_output
                 adj_matrix = aff_adj
 
@@ -130,7 +129,6 @@ class EnhancedBertGCNModel(nn.Module):
 
         if handcrafted_features_tensor.dim() != 1:
             handcrafted_features_tensor = handcrafted_features_tensor.flatten()
-        # Simplified feature dim check - assume correct size or handle outside
         if handcrafted_features_tensor.shape[0] != self.num_handcrafted_features:
             handcrafted_features_tensor = torch.zeros(self.num_handcrafted_features,
                                                       device=node_features_initial.device)
